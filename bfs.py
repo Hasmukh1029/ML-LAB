@@ -1,52 +1,39 @@
-def best_first_search(graph,start,goal,heuristic, path=[]):
-    open_list = [(0,start)]
-    closed_list = set()
-    closed_list.add(start)
+from queue import PriorityQueue
 
-    while open_list:
-        open_list.sort(key = lambda x: heuristic[x[1]], reverse=True)
-        cost, node = open_list.pop()
-        path.append(node)
+def best_first_search(graph, heuristics, start, goal):
+    visited = set()
+    pq = PriorityQueue()
+    pq.put((heuristics[start], start))
+    came_from = {}
 
-        if node==goal:
-            return cost, path
+    while not pq.empty():
+        _, current = pq.get()
 
-        closed_list.add(node)
-        for neighbour, neighbour_cost in graph[node]:
-            if neighbour not in closed_list:
-                open_list.append((cost+neighbour_cost, neighbour))
+        if current == goal:
+            # Reconstruct path
+            path = [goal]
+            while current in came_from:
+                current = came_from[current]
+                path.append(current)
+            path.reverse()
+            print("Path:", ' -> '.join(path))
+            return
 
-    return None
+        if current not in visited:
+            visited.add(current)
+            for neighbor in graph[current]:
+                if neighbor not in visited:
+                    pq.put((heuristics[neighbor], neighbor))
+                    came_from[neighbor] = current
 
+# Example graph with heuristic values
 graph = {
-    'A': [('B', 11), ('C', 14), ('D',7)],
-    'B': [('A', 11), ('E', 15)],
-    'C': [('A', 14), ('E', 8), ('D',18), ('F',10)],
-    'D': [('A', 7), ('F', 25), ('C',18)],
-    'E': [('B', 15), ('C', 8), ('H',9)],
-    'F': [('G', 20), ('C', 10), ('D',25)],
-    'G': [],
-    'H': [('E',9), ('G',10)]
+    'A': ['B', 'C'],
+    'B': ['D'],
+    'C': ['D'],
+    'D': []
 }
+heuristics = {'A': 2, 'B': 1, 'C': 1, 'D': 0}
 
-start = 'A'
-goal = 'G'
-
-heuristic = {
-    'A': 40,
-    'B': 32,
-    'C': 25,
-    'D': 35,
-    'E': 19,
-    'F': 17,
-    'G': 0,
-    'H': 10
-}
-
-result = best_first_search(graph, start, goal, heuristic,[])
-
-if result:
-    print(f"Minimum cost path from {start} to {goal} is {result[1]}")
-    print(f"Cost: {result[0]}")
-else:
-    print(f"No path from {start} to {goal}")
+# Run Best First Search
+best_first_search(graph, heuristics, 'A', 'D')
